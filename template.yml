@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  aws-cloudfront-lambda-edge
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  CloudfrontAtEdgeLambdaExecutionRoleBasic:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - edgelambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+  CloudfrontAtEdgeViwerRequestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/viewer-request-lambda.atEdgeViewerRequest
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 5
+      Description: A Lambda function that will be attached to the viwer-request to a cloudfront distribution.
+      Role: !GetAtt CloudfrontAtEdgeLambdaExecutionRoleBasic.Arn
+  CloudfrontAtEdgeViwerRequestFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref CloudfrontAtEdgeViwerRequestFunction
+
+Outputs:
+  CloudfrontAtEdgeViwerRequestFunction:
+    Description: "Function at viwer request in cloundfront"
+    Value: !GetAtt CloudfrontAtEdgeViwerRequestFunction.Arn
+  CloudfrontAtEdgeViwerRequestFunctionVersion:
+    Description: "Cloundfront Viewer Request Function Version"
+    Value: !GetAtt CloudfrontAtEdgeViwerRequestFunctionVersion.Version
